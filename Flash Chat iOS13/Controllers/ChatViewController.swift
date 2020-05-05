@@ -40,11 +40,12 @@ class ChatViewController: UIViewController {
     func loadMessages() {
         messages = []
 
-        db.collection(K.FStore.collectionName).getDocuments { (snapshot, error) in
+        db.collection(K.FStore.collectionName).addSnapshotListener { (snapshot, error) in
             if let e = error {
                 print(e)
             }
             else {
+                self.messages = []
                 if let snapshotDocuments = snapshot?.documents {
                     for doc in snapshotDocuments {
                         let data = doc.data()
@@ -59,8 +60,8 @@ class ChatViewController: UIViewController {
                             }
                         }
                     }
-                    
-                    
+
+
                 }
             }
         }
