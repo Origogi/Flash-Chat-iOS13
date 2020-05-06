@@ -40,30 +40,32 @@ class ChatViewController: UIViewController {
     func loadMessages() {
         messages = []
 
-        db.collection(K.FStore.collectionName).addSnapshotListener { (snapshot, error) in
-            if let e = error {
-                print(e)
-            }
-            else {
-                self.messages = []
-                if let snapshotDocuments = snapshot?.documents {
-                    for doc in snapshotDocuments {
-                        let data = doc.data()
-                        if let sender = data[K.FStore.senderField] as? String,
-                            let messageBody = data[K.FStore.bodyField] as? String {
+        db.collection(K.FStore.collectionName)
+            .order(by: K.FStore.dateField)
+            .addSnapshotListener { (snapshot, error) in
+                if let e = error {
+                    print(e)
+                }
+                else {
+                    self.messages = []
+                    if let snapshotDocuments = snapshot?.documents {
+                        for doc in snapshotDocuments {
+                            let data = doc.data()
+                            if let sender = data[K.FStore.senderField] as? String,
+                                let messageBody = data[K.FStore.bodyField] as? String {
 
-                            let newMessage = Message(sender: sender, body: messageBody)
-                            self.messages.append(newMessage)
+                                let newMessage = Message(sender: sender, body: messageBody)
+                                self.messages.append(newMessage)
 
-                            DispatchQueue.main.async {
-                                self.tableView.reloadData()
+
                             }
+
+                        }
+                        DispatchQueue.main.async {
+                            self.tableView.reloadData()
                         }
                     }
-
-
                 }
-            }
         }
     }
 
@@ -72,6 +74,7 @@ class ChatViewController: UIViewController {
         if let messageBody = messageTextfield.text, let messageSender = Auth.auth().currentUser?.email {
             db.collection(K.FStore.collectionName)
                 .addDocument(data: [
+                    K.FStore.dateField: Date().timeIntervalSince1970,
                     K.FStore.senderField: messageSender,
                     K.FStore.bodyField: messageBody])
             { (error) in
